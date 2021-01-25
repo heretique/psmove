@@ -91,7 +91,7 @@ bool CameraControl::initialize(int cameraID, int width, int height, int framerat
         psmove_free_mem(video);
     }
     else {
-        capture = std::make_unique<cv::VideoCapture>(cameraID);
+        capture = std::make_unique<cv::VideoCapture>(cameraID, cv::CAP_DSHOW);
 
         if (width <= 0 || height <= 0) {
             get_metrics(&width, &height);
