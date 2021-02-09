@@ -56,9 +56,9 @@ int main(int arg, char** args) {
 
     fprintf(stderr, "Trying to init PSMoveTracker...");
     PSMoveTrackerSettings settings;
-    settings.color_mapping_max_age = 0;
-	settings.exposure_mode = Exposure_LOW;
-	settings.camera_mirror = PSMove_True;
+    settings.colorMappingMaxAge = 0;
+	settings.exposureMode = Exposure_LOW;
+	settings.cameraMirror = PSMove_True;
     PSMoveTracker tracker;
     if (!tracker.initialize(settings))
     {

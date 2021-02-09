@@ -1,0 +1,16 @@
+{
+  "name": "psmove",
+  "version-string": "0.0.1",
+  "dependencies": [
+	"hidapi",
+	"glm",
+    {
+      "name": "opencv4",
+      "features": [ "jpeg", "png", "tiff", "world"]
+	},
+	{
+		"name": "imgui",
+		"features": ["docking-experimental", "glfw-binding", "opengl3-glad-binding"]
+	}
+  ]
+}

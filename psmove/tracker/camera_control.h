@@ -64,7 +64,7 @@ public:
     void setParameters(int autoE, int autoG, int autoWB,
         int exposure, int gain,
         int wbRed, int wbGreen, int wbBlue,
-        int contrast, int brightness, enum PSMove_Bool h_flip);
+        int contrast, int brightness, bool h_flip);
 
     bool backupSystemSettings();
     bool restoreSystemSettings();

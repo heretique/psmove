@@ -166,33 +166,33 @@ void CameraControl::readCalibration(char* intrinsicsFile, char* distortionFile)
     }
 }
 
-void CameraControl::setParameters(int autoE, int autoG, int autoWB, int exposure, int gain, int wbRed, int wbGreen, int wbBlue, int contrast, int brightness, enum PSMove_Bool h_flip)
+void CameraControl::setParameters(int autoE, int autoG, int autoWB, int exposure, int gain, int wbRed, int wbGreen, int wbBlue, int contrast, int brightness, bool h_flip)
 {
-    int val;
-    HKEY hKey;
-    DWORD l = sizeof(DWORD);
-    char* PATH = CL_DRIVER_REG_PATH;
-    int err = RegOpenKeyEx(HKEY_CURRENT_USER, PATH, 0, KEY_ALL_ACCESS, &hKey);
-    if (err != ERROR_SUCCESS) {
-        printf("Error: %d Unable to open reg-key:  [HKCU] %s!", err, PATH);
-        return;
-    }
-    val = autoE > 0;
-    RegSetValueExA(hKey, "AutoAEC", 0, REG_DWORD, (CONST BYTE*) & val, l);
-    val = autoG > 0;
-    RegSetValueExA(hKey, "AutoAGC", 0, REG_DWORD, (CONST BYTE*) & val, l);
-    val = autoWB > 0;
-    RegSetValueExA(hKey, "AutoAWB", 0, REG_DWORD, (CONST BYTE*) & val, l);
-    val = (int)((511 * exposure) / 0xFFFF);
-    RegSetValueExA(hKey, "Exposure", 0, REG_DWORD, (CONST BYTE*) & val, l);
-    val = (int)((79 * gain) / 0xFFFF);
-    RegSetValueExA(hKey, "Gain", 0, REG_DWORD, (CONST BYTE*) & val, l);
-    val = (int)((255 * wbRed) / 0xFFFF);
-    RegSetValueExA(hKey, "WhiteBalanceR", 0, REG_DWORD, (CONST BYTE*) & val, l);
-    val = (int)((255 * wbGreen) / 0xFFFF);
-    RegSetValueExA(hKey, "WhiteBalanceG", 0, REG_DWORD, (CONST BYTE*) & val, l);
-    val = (int)((255 * wbBlue) / 0xFFFF);
-    RegSetValueExA(hKey, "WhiteBalanceB", 0, REG_DWORD, (CONST BYTE*) & val, l);
+    //int val;
+    //HKEY hKey;
+    //DWORD l = sizeof(DWORD);
+    //char* PATH = CL_DRIVER_REG_PATH;
+    //int err = RegOpenKeyEx(HKEY_CURRENT_USER, PATH, 0, KEY_ALL_ACCESS, &hKey);
+    //if (err != ERROR_SUCCESS) {
+    //    printf("Error: %d Unable to open reg-key:  [HKCU] %s!", err, PATH);
+    //    return;
+    //}
+    //val = autoE > 0;
+    //RegSetValueExA(hKey, "AutoAEC", 0, REG_DWORD, (CONST BYTE*) & val, l);
+    //val = autoG > 0;
+    //RegSetValueExA(hKey, "AutoAGC", 0, REG_DWORD, (CONST BYTE*) & val, l);
+    //val = autoWB > 0;
+    //RegSetValueExA(hKey, "AutoAWB", 0, REG_DWORD, (CONST BYTE*) & val, l);
+    //val = (int)((511 * exposure) / 0xFFFF);
+    //RegSetValueExA(hKey, "Exposure", 0, REG_DWORD, (CONST BYTE*) & val, l);
+    //val = (int)((79 * gain) / 0xFFFF);
+    //RegSetValueExA(hKey, "Gain", 0, REG_DWORD, (CONST BYTE*) & val, l);
+    //val = (int)((255 * wbRed) / 0xFFFF);
+    //RegSetValueExA(hKey, "WhiteBalanceR", 0, REG_DWORD, (CONST BYTE*) & val, l);
+    //val = (int)((255 * wbGreen) / 0xFFFF);
+    //RegSetValueExA(hKey, "WhiteBalanceG", 0, REG_DWORD, (CONST BYTE*) & val, l);
+    //val = (int)((255 * wbBlue) / 0xFFFF);
+    //RegSetValueExA(hKey, "WhiteBalanceB", 0, REG_DWORD, (CONST BYTE*) & val, l);
 
     int width, height;
     get_metrics(&width, &height);

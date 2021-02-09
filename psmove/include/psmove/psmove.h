@@ -293,7 +293,7 @@ struct _PSMove_RGBValue {
     unsigned char g;
     unsigned char b;
 };
-typedef struct _PSMove_RGBValue PSMove_RGBValue;
+typedef struct _PSMove_RGBValue PSMoveRGBValue;
 
 
 /*! Library version number */

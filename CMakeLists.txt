@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.16) # for precompiled headers and unity builds
 
 if(DEFINED ENV{VCPKG_ROOT} AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
-   file(TO_CMAKE_PATH "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake" CMAKE_TOOLCHAIN_FILE)
+  file(TO_CMAKE_PATH "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake" CMAKE_TOOLCHAIN_FILE)
 endif()
 
 set(CMAKE_CXX_STANDARD 17)
@@ -14,8 +14,8 @@ include(CMakePrintHelpers)
 set (CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
-option(PSMOVE_SHARED_LIBS "Implement library as shared libs" ON)
-option(PSMOVE_USE_PCH "Use precompiled headers" ON)
+option(PSMOVE_SHARED_LIBS "Implement library as shared libs" OFF)
+option(PSMOVE_USE_PCH "Use precompiled headers" OFF)
 option(PSMOVE_USE_UNITY_BUILDS "Use unity builds" OFF)
 option(PSMOVE_BUILD_UTILITIES "Enable this to build utilities" ON)
 option(PSMOVE_BUILD_EXAMPLES "Enable this to build examples" ON)
@@ -32,7 +32,8 @@ option(PSMOVE_BUILD_EXAMPLES "Enable this to build examples" ON)
 #    set(LIB_TYPE SHARED)
 #    set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS TRUE)
 #endif()
-
+add_subdirectory(3rdparty/imguiProj)
+add_subdirectory(3rdparty/raylib)
 add_subdirectory(psmove)
 
 if (PSMOVE_BUILD_UTILITIES)
