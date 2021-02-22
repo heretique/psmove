@@ -78,7 +78,7 @@ int main(int arg, char** args) {
             result = tracker.enable(controllers[i]);
 
             if (result == Tracker_CALIBRATED) {
-                enum PSMove_Bool auto_update_leds =
+                bool auto_update_leds =
                     tracker.getAutoUpdateLeds(controllers[i]);
                 printf("OK, auto_update_leds is %s\n",
                         (auto_update_leds == PSMove_True)?"enabled":"disabled");

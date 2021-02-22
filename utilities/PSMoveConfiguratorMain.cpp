@@ -20,6 +20,8 @@ int main(int argc, char* argv[])
     cc.sm.addState<ConfigureCamera>(States::ConfigureCamera, "Configure Camera");
     cc.sm.addState<ConfigureController>(States::ConfigureController, "Configure Controllers");
     cc.sm.addState<ConfigureTracker>(States::ConfigureTracker, "Configure Tracker");
+    cc.sm.addState<TestFusion>(States::TestFusion, "Test Fusion");
+
 
     SetTargetFPS(60);
 
@@ -32,6 +34,8 @@ int main(int argc, char* argv[])
 
     // Create a RenderTexture2D to be used for render to texture
     RenderTexture2D target = LoadRenderTexture(screenWidth, screenHeight);
+    cc.psMoveModel = LoadModel("resources/PSMoveController.glb");
+
 
     while (!WindowShouldClose() && !cc.shouldExit)
     {
@@ -72,6 +76,8 @@ int main(int argc, char* argv[])
     ImGui_ImplRaylib_Shutdown();
     ImGui_ImplOpenGL3_Shutdown();
 
+    UnloadModel(cc.psMoveModel);
+    UnloadRenderTexture(target);
     CloseWindow();
 
     return 0;

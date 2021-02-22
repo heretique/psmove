@@ -63,6 +63,9 @@ pseye_distance_parameters = {
 };
 
 
+static const float kMoveBallRadius = 46; // mm
+
+
 void PSMoveTracker::setAutoUpdateLeds(PSMove* move,
         bool auto_update_leds)
 {
@@ -159,7 +162,7 @@ enum PSMoveTracker_Status PSMoveTracker::enable(PSMove* move)
     /* Preset colors - use them in ascending order if not used yet */
     PSMoveRGBValue preset_colors[] = {
         {0xFF, 0x00, 0xFF}, /* magenta */
-        {0x00, 0xFF, 0xFF}, /* cyan */
+        {0x00, 0xFF, 0x00}, /* green */
         {0xFF, 0xFF, 0x00}, /* yellow */
         {0xFF, 0x00, 0x00}, /* red */
         {0x00, 0x00, 0xFF}, /* blue */
@@ -591,7 +594,7 @@ void PSMoveTracker::updateImage() {
 
     frame = cc->queryFrame();
 
-#if !defined(CAMERA_CONTROL_USE_PS3EYE_DRIVER) && !defined(__linux)
+#if !defined(__linux)
     // PS3EyeDriver, CLEyeDriver, and v4l support flipping the camera image in
     // hardware (or in the driver). Manual flipping is only required if we are
     // using none of these ways to configure the camera and thus have no way
@@ -605,6 +608,11 @@ void PSMoveTracker::updateImage() {
 
 int PSMoveTracker::updateController(TrackedController* tc)
 {
+    if (tc->move == NULL)
+    {
+        return 0;
+    }
+
     float x, y;
     int i = 0;
     int sphere_found = 0;
@@ -747,7 +755,7 @@ int PSMoveTracker::updateController(TrackedController* tc)
                     tc->q3 > settings.colorUpdateQualityT3)
                 {
                     // calculate the new estimated color (adaptive color estimation)
-                    cv::Scalar newColor = cv::mean(frame, roi_m);
+                    cv::Scalar newColor = cv::mean(roi_i, roi_m);
 
                     tc->eColor = th_scalar_mul(th_scalar_add(tc->eColor, newColor), 0.5);
 
@@ -888,50 +896,50 @@ PSMoveTracker::Size PSMoveTracker::getSize()
 // -------- Implementation: internal functions only
 int PSMoveTracker::adaptToLight(float target_luminance)
 {
-    float minimum_exposure = 2051;
-    float maximum_exposure = 65535;
-    float current_exposure = (maximum_exposure + minimum_exposure) / 2.0f;
+    //float minimum_exposure = -20;
+    //float maximum_exposure = -1;
+    //float current_exposure = (maximum_exposure + minimum_exposure) / 2.0f;
 
-    if (target_luminance == 0) {
-        return (int)minimum_exposure;
-    }
+    //if (target_luminance == 0) {
+    //    return (int)minimum_exposure;
+    //}
 
-    float step_size = (maximum_exposure - minimum_exposure) / 4.0f;
+    //float step_size = (maximum_exposure - minimum_exposure) / 4.0f;
 
-    // Switch off the controllers' LEDs for proper environment measurements
-    for (TrackedController& tc : controllers) {
-        psmove_set_leds(tc.move, 0, 0, 0);
-        psmove_update_leds(tc.move);
-    }
+    //// Switch off the controllers' LEDs for proper environment measurements
+    //for (TrackedController& tc : controllers) {
+    //    psmove_set_leds(tc.move, 0, 0, 0);
+    //    psmove_update_leds(tc.move);
+    //}
 
-    int i;
-    for (i = 0; i < 7; i++) {
-        cc->setParameters(0, 0, 0,
-                (int)current_exposure, 0, 0xffff, 0xffff, 0xffff, -1, -1, settings.cameraMirror);
+    //int i;
+    //for (i = 0; i < 7; i++) {
+    //    cc->setParameters(0, 0, 0,
+    //            (int)current_exposure, 0, 0xffff, 0xffff, 0xffff, -1, -1, settings.cameraMirror);
 
-        cv::Mat frame;
-        waitForFrame(&frame, 50);
-        assert(!frame.empty());
+    //    cv::Mat frame;
+    //    waitForFrame(&frame, 50);
+    //    assert(!frame.empty());
 
-        // calculate the average color and luminance (energy)
-        float luminance = (float)th_color_avg(cv::mean(frame));
+    //    // calculate the average color and luminance (energy)
+    //    float luminance = (float)th_color_avg(cv::mean(frame));
 
-        psmove_DEBUG("Exposure: %.2f, Luminance: %.2f\n", current_exposure, luminance);
-        if (fabsf(luminance - target_luminance) < 1) {
-            break;
-        }
+    //    psmove_DEBUG("Exposure: %.2f, Luminance: %.2f\n", current_exposure, luminance);
+    //    if (fabsf(luminance - target_luminance) < 1) {
+    //        break;
+    //    }
 
-        // Binary search for the best exposure setting
-        if (luminance > target_luminance) {
-            current_exposure -= step_size;
-        }
-        else {
-            current_exposure += step_size;
-        }
+    //    // Binary search for the best exposure setting
+    //    if (luminance > target_luminance) {
+    //        current_exposure -= step_size;
+    //    }
+    //    else {
+    //        current_exposure += step_size;
+    //    }
 
-        step_size /= 2.;
-    }
-
+    //    step_size /= 2.;
+    //}
+    int current_exposure = settings.cameraExposure;
     return (int)current_exposure;
 }
 
@@ -1233,7 +1241,7 @@ PSMoveTrackerSettings::PSMoveTrackerSettings()
     cameraAutoGain = PSMove_False;
     cameraGain = 0;
     cameraAutoWhiteBalance = PSMove_False;
-    cameraExposure = (255 * 15) / 0xFFFF;
+    cameraExposure = -10;
     cameraBrightness = 0;
     cameraMirror = PSMove_False;
     exposureMode = Exposure_LOW;
@@ -1335,7 +1343,7 @@ bool PSMoveTracker::initialize(int camera, const PSMoveTrackerSettings& iSetting
 
     //cc_settings = camera_control_backup_system_settings(cc);
 
-#if !defined(__APPLE__) || defined(CAMERA_CONTROL_USE_PS3EYE_DRIVER)
+#if !defined(__APPLE__)
     // try to load color mapping data (not on Mac OS X for now, because the
     // automatic white balance means we get different colors every time)
     char* filename = psmove_util_get_file_path(COLOR_MAPPING_DAT);

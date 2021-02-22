@@ -91,7 +91,7 @@ bool CameraControl::initialize(int cameraID, int width, int height, int framerat
         psmove_free_mem(video);
     }
     else {
-        capture = std::make_unique<cv::VideoCapture>(cameraID, cv::CAP_DSHOW);
+        capture = std::make_unique<cv::VideoCapture>(cameraID, cv::CAP_MSMF);
 
         if (width <= 0 || height <= 0) {
             get_metrics(&width, &height);
@@ -99,6 +99,7 @@ bool CameraControl::initialize(int cameraID, int width, int height, int framerat
 
         capture->set(cv::CAP_PROP_FRAME_WIDTH, width);
         capture->set(cv::CAP_PROP_FRAME_HEIGHT, height);
+        capture->set(cv::CAP_PROP_FPS, framerate);
     }
 
     this->width = width;
@@ -194,12 +195,11 @@ void CameraControl::setParameters(int autoE, int autoG, int autoWB, int exposure
     //val = (int)((255 * wbBlue) / 0xFFFF);
     //RegSetValueExA(hKey, "WhiteBalanceB", 0, REG_DWORD, (CONST BYTE*) & val, l);
 
-    int width, height;
-    get_metrics(&width, &height);
-
-    capture = std::make_unique<cv::VideoCapture>(cameraID);
-    capture->set(cv::CAP_PROP_FRAME_WIDTH, width);
-    capture->set(cv::CAP_PROP_FRAME_HEIGHT, height);
+    if (capture)
+    {
+        capture->set(cv::CAP_PROP_AUTO_EXPOSURE, autoE);
+        capture->set(cv::CAP_PROP_EXPOSURE, exposure);
+    }
 }
 
 bool CameraControl::backupSystemSettings()

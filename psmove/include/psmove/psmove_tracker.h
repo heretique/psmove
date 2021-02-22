@@ -35,8 +35,8 @@
 #include "opencv2/core.hpp"
 
 /* Defines the range of x/y values for the position getting, etc.. */
-#define PSMOVE_TRACKER_DEFAULT_WIDTH 1280
-#define PSMOVE_TRACKER_DEFAULT_HEIGHT 720
+#define PSMOVE_TRACKER_DEFAULT_WIDTH 1920
+#define PSMOVE_TRACKER_DEFAULT_HEIGHT 1080
 #define PSMOVE_TRACKER_DEFAULT_FPS 60
 
 #define ROIS 4                          // the number of levels of regions of interest (roi)

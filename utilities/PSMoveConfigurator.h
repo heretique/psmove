@@ -2,6 +2,7 @@
 
 #include "psmove/psmove.h"
 #include "psmove/psmove_tracker.h"
+#include "psmove/psmove_fusion.h"
 
 #include "raylib.h"
 #include "opencv2/videoio.hpp"
@@ -123,7 +124,8 @@ enum class States {
     Main,
     ConfigureCamera,
     ConfigureController,
-    ConfigureTracker
+    ConfigureTracker,
+    TestFusion,
 };
 
 struct ConfigureContext;
@@ -139,6 +141,7 @@ struct ConfigureContext
     int screenWidth{ 1920 };
     int screenHeight{ 1080 };
     SM sm;
+    Model psMoveModel{};
 };
 
 
@@ -160,8 +163,15 @@ public:
     virtual ResultType onStateExit() override;
 private:
     cv::Mat frame;
+    cv::Mat threshHSV;
+    cv::Mat thresh;
     Texture2D videoTex{};
+    Texture2D threshTex{};
+    std::vector<int> minHSV{0, 0, 0};
+    std::vector<int> maxHSV{179, 255, 255};
     std::unique_ptr<cv::VideoCapture> capture;
+    std::vector<PSMove*> controllers;
+    size_t currentController{ 0 };
 };
 
 class ConfigureController : public Configure
@@ -171,8 +181,20 @@ public:
     virtual ResultType onStateEnter() override;
     virtual ResultType onStateUpdate() override;
     virtual ResultType onStateExit() override;
+
+ private:
+     void magnetormeterCalibrationUpdate();
+     bool isMoveStableAndAlignedWithGravity();
 private:
-    std::vector<PSMove*> controllers;
+    struct Controller
+    {
+        PSMove* move{};
+        int R{};
+        int G{};
+        int B{};
+    };
+    std::vector<Controller> controllers;
+    Camera3D camera {0};
 };
 
 class ConfigureTracker : public Configure
@@ -188,5 +210,20 @@ private:
     std::vector<PSMove*> controllers;
     PSMoveTrackerSettings settings;
     std::unique_ptr<PSMoveTracker> tracker;
+};
+
+class TestFusion : public Configure
+{
+public:
+    TestFusion(const std::string& name, ConfigureContext& context) : Configure(name, context) {}
+    virtual ResultType onStateEnter() override;
+    virtual ResultType onStateUpdate() override;
+    virtual ResultType onStateExit() override;
+private:
+    std::vector<PSMove*> controllers;
+    PSMoveTrackerSettings settings;
+    std::unique_ptr<PSMoveTracker> tracker;
+    std::unique_ptr<PSMoveFusion> fusion;
+    Camera3D camera{ 0 };
 };
 

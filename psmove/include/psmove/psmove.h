@@ -1137,7 +1137,7 @@ ADDCALL psmove_get_magnetometer_calibration_range(PSMove *move);
  * \brief Check if calibration is available on this controller.
  *
  * For psmove_get_accelerometer_frame() and psmove_get_gyroscope_frame()
- * to work, the calibration data has to be availble. This usually happens
+ * to work, the calibration data has to be available. This usually happens
  * at pairing time via USB. The calibration files are stored in the PS
  * Move API data directory (see psmove_util_get_data_dir()) and can be
  * copied between machines (e.g. from the machine you do your pairing to
