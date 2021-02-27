@@ -11,6 +11,7 @@
 #include <unordered_map>
 #include <optional>
 #include <vector>
+#include <deque>
 #include <string>
 #include <memory>
 
@@ -225,5 +226,7 @@ private:
     std::unique_ptr<PSMoveTracker> tracker;
     std::unique_ptr<PSMoveFusion> fusion;
     Camera3D camera{ 0 };
+
+    std::unordered_map<int, std::deque<Vector3>> traces;
 };
 

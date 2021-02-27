@@ -224,8 +224,8 @@ public:
     ~PSMoveTracker();
     bool initialize();
     bool initialize(const PSMoveTrackerSettings& settings);
-    bool initialize(int camera);
-    bool initialize(int camera, const PSMoveTrackerSettings& settings);
+    bool initialize(int camera, int cameraBackend);
+    bool initialize(int camera, int cameraBackend, const PSMoveTrackerSettings& settings);
 
     int countConnected();
     /**

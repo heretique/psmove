@@ -71,11 +71,11 @@ CameraControl::CameraControl()
 
 bool CameraControl::initialize(int cameraID)
 {
-    return initialize(cameraID, 0, 0, 0);
+    return initialize(cameraID, cv::CAP_ANY, 0, 0, 0);
 }
 
 
-bool CameraControl::initialize(int cameraID, int width, int height, int framerate)
+bool CameraControl::initialize(int cameraID, int cameraBackend, int width, int height, int framerate)
 {
     this->cameraID = cameraID;
 
@@ -91,7 +91,7 @@ bool CameraControl::initialize(int cameraID, int width, int height, int framerat
         psmove_free_mem(video);
     }
     else {
-        capture = std::make_unique<cv::VideoCapture>(cameraID, cv::CAP_MSMF);
+        capture = std::make_unique<cv::VideoCapture>(cameraID, cameraBackend);
 
         if (width <= 0 || height <= 0) {
             get_metrics(&width, &height);
@@ -100,10 +100,13 @@ bool CameraControl::initialize(int cameraID, int width, int height, int framerat
         capture->set(cv::CAP_PROP_FRAME_WIDTH, width);
         capture->set(cv::CAP_PROP_FRAME_HEIGHT, height);
         capture->set(cv::CAP_PROP_FPS, framerate);
+
+        psmove_DEBUG("Using '%s' camera backend.\n", capture->getBackendName().c_str());
     }
 
     this->width = width;
     this->height = height;
+
 
     return true;
 }

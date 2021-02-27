@@ -876,9 +876,12 @@ psmove_connect_by_id(int id)
 #if defined(PSMOVE_DEBUG)
     for (i=0; i<available; i++) {
         cur_dev = devs_sorted[i];
-        char tmp[64];
-        wcstombs(tmp, cur_dev->serial_number, sizeof(tmp));
-        printf("devs_sorted[%d]: (handle=%p, serial=%s, path=%s)\n", i, cur_dev, tmp, cur_dev->path);
+        if (cur_dev->serial_number)
+        {
+            char tmp[64];
+            wcstombs(tmp, cur_dev->serial_number, sizeof(tmp));
+            printf("devs_sorted[%d]: (handle=%p, serial=%s, path=%s)\n", i, cur_dev, tmp, cur_dev->path);
+        }
     }
 #endif /* defined(PSMOVE_DEBUG) */
 

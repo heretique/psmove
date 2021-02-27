@@ -1295,6 +1295,7 @@ bool PSMoveTracker::initialize()
 bool PSMoveTracker::initialize(const PSMoveTrackerSettings& settings)
 {
     int camera = 0;
+    int cameraBackend = 0;
 
     int camera_env = psmove_util_get_env_int(PSMOVE_TRACKER_CAMERA_ENV);
     if (camera_env != -1) {
@@ -1303,17 +1304,17 @@ bool PSMoveTracker::initialize(const PSMoveTrackerSettings& settings)
                 PSMOVE_TRACKER_CAMERA_ENV);
     }
 
-    return initialize(camera, settings);
+    return initialize(camera, cameraBackend, settings);
 }
 
 
-bool PSMoveTracker::initialize(int camera)
+bool PSMoveTracker::initialize(int camera, int cameraBackend)
 {
-    return initialize(camera, PSMoveTrackerSettings());
+    return initialize(camera, cameraBackend, PSMoveTrackerSettings());
 }
 
 
-bool PSMoveTracker::initialize(int camera, const PSMoveTrackerSettings& iSettings)
+bool PSMoveTracker::initialize(int camera, int cameraBackend, const PSMoveTrackerSettings& iSettings)
 {
     this->settings = iSettings;
     rHSV = cv::Scalar(
@@ -1327,7 +1328,7 @@ bool PSMoveTracker::initialize(int camera, const PSMoveTrackerSettings& iSetting
     // Returns NULL if no control found.
     // e.g. PS3EYE set during compile but not plugged in.
     cc = std::make_unique<CameraControl>();
-    if (!cc->initialize(camera,
+    if (!cc->initialize(camera, cameraBackend,
         settings.cameraFrameWidth, settings.cameraFrameHeight, settings.cameraFrameRate))
     {
         return false;

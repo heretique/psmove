@@ -6,6 +6,104 @@
 
 namespace ui = ImGui;
 
+constexpr float kFloatTolerance = 2e-37f;
+
+void MatrixDecompose(const Matrix& matrix, Quaternion& rotation, Vector3& scale, Vector3& translation)
+{
+    // Extract the translation.
+    translation.x = matrix.m12;
+    translation.y = matrix.m13;
+    translation.z = matrix.m14;
+
+    // Extract the scale.
+    // This is simply the length of each axis (row/column) in the matrix.
+    Vector3  xaxis{matrix.m0, matrix.m1, matrix.m2};
+    float scaleX = Vector3Length(xaxis);
+
+    Vector3  yaxis{matrix.m4, matrix.m5, matrix.m6};
+    float scaleY = Vector3Length(yaxis);
+
+    Vector3  zaxis{matrix.m8, matrix.m9, matrix.m10};
+    float scaleZ = Vector3Length(zaxis);
+
+    // Determine if we have a negative scale (true if determinant is less than
+    // zero).
+    // In this case, we simply negate a single axis of the scale.
+    float det = MatrixDeterminant(matrix);
+    if (det < 0)
+        scaleZ = -scaleZ;
+
+    scale.x = scaleX;
+    scale.y = scaleY;
+    scale.z = scaleZ;
+
+    // Scale too close to zero, can't decompose rotation.
+    if (scaleX < kFloatTolerance || scaleY < kFloatTolerance || abs(scaleZ) < kFloatTolerance)
+    {
+        printf("Scale too close to zero, can't decompose rotation");
+        abort();
+    }
+
+    float rn;
+
+    // Factor the scale out of the matrix axes.
+    rn = 1.0f / scaleX;
+    xaxis.x *= rn;
+    xaxis.y *= rn;
+    xaxis.z *= rn;
+
+    rn = 1.0f / scaleY;
+    yaxis.x *= rn;
+    yaxis.y *= rn;
+    yaxis.z *= rn;
+
+    rn = 1.0f / scaleZ;
+    zaxis.x *= rn;
+    zaxis.y *= rn;
+    zaxis.z *= rn;
+
+    // Now calculate the rotation from the resulting matrix (axes).
+    float trace = xaxis.x + yaxis.y + zaxis.z + 1.0f;
+
+    if (trace > 1.0f)
+    {
+        float s = 0.5f / sqrt(trace);
+        rotation.w = 0.25f / s;
+        rotation.x = (yaxis.z - zaxis.y) * s;
+        rotation.y = (zaxis.x - xaxis.z) * s;
+        rotation.z = (xaxis.y - yaxis.x) * s;
+    }
+    else
+    {
+        // Note: since xaxis, yaxis, and zaxis are normalized,
+        // we will never divide by zero in the code below.
+        if (xaxis.x > yaxis.y && xaxis.x > zaxis.z)
+        {
+            float s = 0.5f / sqrt(1.0f + xaxis.x - yaxis.y - zaxis.z);
+            rotation.w = (yaxis.z - zaxis.y) * s;
+            rotation.x = 0.25f / s;
+            rotation.y = (yaxis.x + xaxis.y) * s;
+            rotation.z = (zaxis.x + xaxis.z) * s;
+        }
+        else if (yaxis.y > zaxis.z)
+        {
+            float s = 0.5f / sqrt(1.0f + yaxis.y - xaxis.x - zaxis.z);
+            rotation.w = (zaxis.x - xaxis.z) * s;
+            rotation.x = (yaxis.x + xaxis.y) * s;
+            rotation.y = 0.25f / s;
+            rotation.z = (zaxis.y + yaxis.z) * s;
+        }
+        else
+        {
+            float s = 0.5f / sqrt(1.0f + zaxis.z - xaxis.x - yaxis.y);
+            rotation.w = (xaxis.y - yaxis.x) * s;
+            rotation.x = (zaxis.x + xaxis.z) * s;
+            rotation.y = (zaxis.y + yaxis.z) * s;
+            rotation.z = 0.25f / s;
+        }
+    }
+}
+
 ConfigureContext::ConfigureContext()
     :sm(*this)
 {
@@ -351,7 +449,7 @@ Configure::ResultType ConfigureTracker::onStateEnter()
 
     tracker = std::make_unique<PSMoveTracker>();
 
-    if (!tracker->initialize(0, settings))
+    if (!tracker->initialize(0, cv::CAP_MSMF, settings))
     {
         printf("Could not init PSMoveTracker.\n");
         return States::Main;
@@ -448,6 +546,8 @@ Configure::ResultType TestFusion::onStateEnter()
         if (controller)
         {
             controllers.push_back(controller);
+            std::deque<Vector3> trace;
+            traces.emplace(std::make_pair((int)controller, std::move(trace)));
         }
         else
         {
@@ -469,7 +569,7 @@ Configure::ResultType TestFusion::onStateEnter()
 
     tracker = std::make_unique<PSMoveTracker>();
 
-    if (!tracker->initialize(0, settings))
+    if (!tracker->initialize(0, cv::CAP_MSMF, settings))
     {
         printf("Could not init PSMoveTracker.\n");
         return States::Main;
@@ -496,7 +596,7 @@ Configure::ResultType TestFusion::onStateEnter()
         }
     }
 
-    fusion = std::make_unique<PSMoveFusion>(tracker.get(), 1.f, 1000.f);
+    fusion = std::make_unique<PSMoveFusion>(tracker.get(), .037f, 1000.f);
 
     for (auto controller : controllers)
     {
@@ -508,12 +608,12 @@ Configure::ResultType TestFusion::onStateEnter()
         psmove_set_rate_limiting(controller, PSMove_True);
     }
 
-    camera.position = { 0.f, 0.f, .5f }; // Camera position
+    camera.position = { 0.f, 6.f, 5.f }; // Camera position
     camera.target = { 0.0f, 0.0f, 0.0f };      // Camera looking at point
     camera.up = { 0.0f, 1.0f, 0.0f };          // Camera up vector (rotation towards target)
-    camera.fovy = 60.0f;                                // Camera field-of-view Y
+    camera.fovy = 60.f;                                // Camera field-of-view Y
     camera.type = CAMERA_PERSPECTIVE;
-    SetCameraMode(camera, CAMERA_CUSTOM);
+    SetCameraMode(camera, CAMERA_ORBITAL);
 
     return {};
 }
@@ -521,6 +621,8 @@ Configure::ResultType TestFusion::onStateEnter()
 Configure::ResultType TestFusion::onStateUpdate()
 {
     ResultType ret{};
+
+    UpdateCamera(&camera);
 
     ui::Begin("Controller Settings");
     if (!controllers.size())
@@ -532,6 +634,8 @@ Configure::ResultType TestFusion::onStateUpdate()
         tracker->updateImage();
         tracker->update(NULL);
 
+        ui::Text("Camera Position (%.3f, %.3f, %.3f)", camera.position.x, camera.position.y, camera.position.z);
+        ui::NewLine();
         int controllerIndex = 0;
         for (auto controller : controllers)
         {
@@ -546,31 +650,53 @@ Configure::ResultType TestFusion::onStateUpdate()
             PSMove_Battery_Level batteryLevel = psmove_get_battery(move);
             ui::Text("Battery level: %d", batteryLevel);
 
-            PSMoveTracker::Position pos;
+
             float x, y, z, w;
-            tracker->getPosition(move, pos);
-            //float dist = tracker->distanceFromRadius(pos.radius);
-            // distance computed based on measured info
-            // ball size 46 mm, focal length 3.7 mm with a measured size on screen
-            // of 63.85 px at a distance of 500mm => 1px = 0.00533124510 mm
-            float dist = 46 * 3.7 / (pos.radius * 0.00533124510f);
-            ui::Text("Tracker Position: (x: %f, y: %f, d: %f, r:%f)", pos.x, pos.y, dist, pos.radius);
-            
+           
             fusion->getPosition(move, x, y, z);
-            ui::Text("Fusion Position (%.3f, %.3f, %.3f)", x, y, x);
-            Ray posRay = GetMouseRay({ pos.x, pos.y } , camera);
-            Vector3 position = Vector3Add(posRay.position, Vector3Scale(posRay.direction, 1.f - dist * 0.001f));
+            ui::Text("Position (%.3f, %.3f, %.3f)", x, y, z);
+            Vector3 position{x, y, z};
             if (psmove_has_orientation(move))
             {
                 psmove_get_orientation(move, &w, &x, &y, &z);
                 Vector3 axis;
                 float angle;
+
+                Matrix cameraMatrix = MatrixInvert(GetCameraMatrix(camera));
+                Quaternion cameraRotation;
+                Quaternion cameraRotationUp;
+                Vector3 cameraPosition;
+                Vector3 cameraScale;
+
+                MatrixDecompose(cameraMatrix, cameraRotation, cameraScale, cameraPosition);
+
                 Quaternion xRotQuat = QuaternionFromAxisAngle({ 1, 0, 0 }, xRotation * DEG2RAD);
-                QuaternionToAxisAngle(QuaternionMultiply({ x, y, z, w }, xRotQuat), &axis, &angle);
                 BeginMode3D(camera);
 
-                DrawModelEx(_context.psMoveModel, position, axis, angle * RAD2DEG, { 0.5f, .5f, .5f }, WHITE);
 
+                //Vector3 controllersPosition = Vector3Add(position, camera.position);
+                QuaternionToAxisAngle(QuaternionMultiply(cameraRotation, QuaternionMultiply({ x, y, z, w }, xRotQuat)), &axis, &angle);
+                Vector3 controllersPosition = Vector3Transform({position.x, position.y, -position.z}, cameraMatrix);
+                ui::Text("Final Position (%.3f, %.3f, %.3f)", controllersPosition.x, controllersPosition.y, controllersPosition.z);
+                DrawModelEx(_context.psMoveModel, controllersPosition, axis, angle * RAD2DEG, { 1.f, 1.f, 1.f }, WHITE);
+                int buttons = psmove_get_buttons(move);
+                if (buttons & Btn_MOVE)
+                {
+                    auto& trace = traces[(int)move];
+                    trace.emplace_back(controllersPosition);
+                    if (trace.size() > 1000)
+                    {
+                        trace.pop_front();
+                    }
+                }
+
+                auto& trace = traces[(int)move];
+                for (const auto& pos : trace)
+                {
+                    DrawSphere(pos, 0.01f, SKYBLUE);
+                }
+
+                DrawGrid(10, 1.f);
                 EndMode3D();
             }
             else

@@ -42,7 +42,7 @@ class CameraControl
 public:
     CameraControl();
     bool initialize(int cameraID);
-    bool initialize(int cameraID, int width, int height, int framerate);
+    bool initialize(int cameraID, int cameraBackend, int width, int height, int framerate);
     int connectedCount();
     cv::Mat queryFrame();
     void readCalibration(char* intrinsicsFile, char* distortionFile);

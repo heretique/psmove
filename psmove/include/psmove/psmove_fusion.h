@@ -38,11 +38,11 @@
 
 
 /* Field of view of the PS Eye */
-#define PSEYE_FOV_BLUE_DOT 75
-#define PSEYE_FOV_RED_DOT 56
+#define PSEYE_FOV_BLUE_DOT 78
+#define PSEYE_FOV_RED_DOT 78
 
 
-class ADDAPI PSMoveFusion
+class PSMoveFusion
 {
 public:
     /**
@@ -113,7 +113,8 @@ private:
 
     float width;
     float height;
-
+    float mNear;
+    float mFar;
     glm::mat4 projection;
     glm::mat4 modelview;
     glm::vec4 viewport;
