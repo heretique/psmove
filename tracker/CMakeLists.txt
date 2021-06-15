@@ -3,7 +3,7 @@ option(PSMOVE_USE_DEBUG_CAPTURE "Always show camera capture input" OFF)
 option(PSMOVE_USE_CVUI "Use CVUI for settings tweaking" OFF)
 
 find_package(OpenCV CONFIG REQUIRED)
-#find_package(rttr CONFIG REQUIRED)
+find_package(rttr CONFIG REQUIRED)
 
 add_library(psmove_tracker STATIC
     platform/camera_control_win32.cpp
@@ -27,7 +27,7 @@ target_include_directories(psmove_tracker
         ${CMAKE_CURRENT_SOURCE_DIR}/../include/psmove
     )
 
-target_link_libraries(psmove_tracker PRIVATE psmove opencv_world vfw32 comctl32 RTTR::Core_Lib)
+target_link_libraries(psmove_tracker PRIVATE psmove opencv_world vfw32 comctl32 RTTR::Core)
 
 if(PSMOVE_USE_DEBUG_CAPTURE)
     target_compile_definitions(psmove_tracker PRIVATE CAMERA_CONTROL_DEBUG_CAPTURED_IMAGE)
