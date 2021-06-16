@@ -4,6 +4,7 @@
     "dependencies": [
         "hidapi",
         "glm",
+        "rttr",
         {
             "name": "opencv4",
             "features": [ "contrib", "ffmpeg", "nonfree", "jpeg", "png", "tiff", "world" ]
