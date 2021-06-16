@@ -1,0 +1,12 @@
+{
+    "name": "psmove",
+    "version-string": "0.0.1",
+    "dependencies": [
+        "hidapi",
+        "glm",
+        {
+            "name": "opencv4",
+            "features": [ "contrib", "ffmpeg", "nonfree", "jpeg", "png", "tiff", "world" ]
+        }
+    ]
+}
